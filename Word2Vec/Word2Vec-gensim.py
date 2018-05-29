@@ -21,7 +21,7 @@ Sliding window size
 sg = 1
 window = 5
 min_count = 5
-size = 1000
+size = 100
 corpus_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Corpus/wiki/text/AA/wiki_00'
 model_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/w2v-gensim-model' + '-' + str(sg) + '-' + str(window) + '-' + str(min_count) + '-' + str(size)
 
@@ -34,5 +34,5 @@ model_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/w2v-gens
 
 w2vmodel = Word2Vec.load(model_file_path)
 #print (w2vmodel.wv.most_similar(positive=['dia', 'suka', 'makan']))
-print (w2vmodel.wv.similarity('suka', 'buang'))
+print (w2vmodel.wv.similarity('suka', 'benci'))
 #print (w2vmodel.wv['mereka'].size)

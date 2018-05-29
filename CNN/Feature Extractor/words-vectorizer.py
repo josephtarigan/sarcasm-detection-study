@@ -7,61 +7,88 @@ import importlib.util
 import numpy as np
 from Preprocess import Preprocess
 
-#============================================================================
-# Load Data
-#============================================================================
+# D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/
+# /ToadCSVFile_2018-05-23T20_33_112018-05-23 20-33-49.csv
+def word_preprocessing (w2v_model_path, csv_file_path, word_limit, window_size, word_min_count, feature_size):
+    #============================================================================
+    # Word2Vec Unit
+    #============================================================================
+    
+    sg = 1
+    model_file_path = w2v_model_path + '/w2v-gensim-model' + '-' + str(sg) + '-' + str(window_size) + '-' + str(word_min_count) + '-' + str(feature_size)
 
-csv_file = pd.read_csv(os.path.dirname(os.path.realpath(__file__)) + '/ToadCSVFile_2018-05-23T20_33_112018-05-23 20-33-49.csv')
-similarity_matrix = np.zeros((csv_file.size, 144*csv_file.size))
-#print (csv_file.head())
-
-print (similarity_matrix.shape)
-
-#============================================================================
-# Word2Vec Unit
-#============================================================================
-'''
-sentences
-
-sq
-1 = skip-gram
-0 = CBOW
-
-size
-Dimension of feature vectors, aka the hidden layer size
-
-min_count
-ignore word that occurs under the given min_count
-
-window
-Sliding window size
-
-'''
-sg = 1
-window = 5
-min_count = 5
-size = 1000
-corpus_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Corpus/wiki/text/AA/wiki_00'
-model_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/w2v-gensim-model' + '-' + str(sg) + '-' + str(window) + '-' + str(min_count) + '-' + str(size)
-
-w2vmodel = Word2Vec.load(model_file_path)
-
-for index, row in csv_file.iterrows():
+    w2vmodel = Word2Vec.load(model_file_path)
 
     #============================================================================
-    # Preprocessing
+    # Load Data
     #============================================================================
 
-    words = (Preprocess.preprocessPipeline1(row['tweet_text'])) # before trim
-    words = list(filter(lambda x: x in w2vmodel.wv.vocab, words)) # after trim
-    vectors = []
+    csv_file = pd.read_csv(csv_file_path)
 
-    for y in range(0, len(words)):
-        for x in range(0, len(words)):
-            #print (w2vmodel.wv.similarity(words[y], words[x]))
-            vectors.append(w2vmodel.wv.similarity(words[y], words[x]))
+    # these matrixes are representation of words in the csv files
+    # 1D similarity matrix
+    one_dimensional_similarity_matrix = np.zeros((csv_file.size, word_limit*word_limit))
 
-    # add to similarity matrix
-    similarity_matrix[index, 0:len(vectors)] = vectors
+    # 2D similarity matrix
+    two_dimensional_similarity_matrix = np.zeros((csv_file.size, word_limit, word_limit))
 
-print (similarity_matrix)
+    # 1D word vectors
+    one_dimensional_word_vectors = np.zeros((csv_file.size, word_limit * feature_size))
+
+    # 2D word vectors
+    two_dimensional_word_vectors = np.zeros((csv_file.size, word_limit, feature_size))
+
+    # label list
+    label_list = []
+
+    for index, row in csv_file.iterrows(): # for every row in the table
+
+        #============================================================================
+        # Preprocessing
+        #============================================================================
+
+        words = (Preprocess.preprocessPipeline1(row['tweet_text'])) # before trim
+        words = list(filter(lambda x: x in w2vmodel.wv.vocab, words)) # after trim
+        similarity_vectors = []
+        word_vectors = []
+
+        for y in range(0, len(words)):
+            # similarity vectors, per row
+            for x in range(0, len(words)):
+                #print (w2vmodel.wv.similarity(words[y], words[x]))
+                similarity_vectors.append(w2vmodel.wv.similarity(words[y], words[x]))
+
+            # word vectors, per row
+            word_vectors.append(w2vmodel.wv[words[y]])
+
+        
+        # 1D similarity matrix
+        one_dimensional_similarity_matrix[index, 0:len(similarity_vectors)] = similarity_vectors
+
+        # 2D similarity matrix
+        two_dimensional_similarity_matrix[index] = one_dimensional_similarity_matrix[index].reshape((word_limit, word_limit))
+
+        # 1D word vectors
+        # flatten it first
+        f_flatten_word_vectors = lambda word_vector : [word for row in word_vector for word in row]
+        flatten_word_vectors = f_flatten_word_vectors(word_vectors)
+        one_dimensional_word_vectors[index, 0:len(flatten_word_vectors)] = flatten_word_vectors
+
+        # 2D word vectors
+        two_dimensional_word_vectors[index] = one_dimensional_word_vectors[index].reshape((word_limit, feature_size))
+
+        # store the label
+        label_list.append(row['is_sarcasm'])
+
+    return one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list
+
+# debug
+#one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list = word_preprocessing('D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/', 'D:/Workspaces/python/Sarcasm Detector Study/CNN/Feature Extractor/ToadCSVFile_2018-05-23T20_33_112018-05-23 20-33-49.csv', 140, 5, 5, 1000)
+
+
+# debug
+#print (one_dimensional_similarity_matrix.shape)
+#print (two_dimensional_similarity_matrix.shape)
+#print (one_dimensional_word_vectors.shape)
+#print (two_dimensional_word_vectors.shape)
+#print (len(label_list))
