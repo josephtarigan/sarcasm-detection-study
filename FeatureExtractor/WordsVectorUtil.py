@@ -9,7 +9,7 @@ from Preprocess import Preprocess
 
 # D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/
 # /ToadCSVFile_2018-05-23T20_33_112018-05-23 20-33-49.csv
-def word_preprocessing (w2v_model_path, csv_file_path, word_limit, window_size, word_min_count, feature_size):
+def WordPreprocessing (w2v_model_path, csv_file_path, word_limit, window_size, word_min_count, feature_size):
     #============================================================================
     # Word2Vec Unit
     #============================================================================
@@ -24,19 +24,20 @@ def word_preprocessing (w2v_model_path, csv_file_path, word_limit, window_size, 
     #============================================================================
 
     csv_file = pd.read_csv(csv_file_path)
+    num_rows = csv_file.shape[0]
 
     # these matrixes are representation of words in the csv files
     # 1D similarity matrix
-    one_dimensional_similarity_matrix = np.zeros((csv_file.size, word_limit*word_limit))
+    one_dimensional_similarity_matrix = np.zeros((num_rows, word_limit*word_limit))
 
     # 2D similarity matrix
-    two_dimensional_similarity_matrix = np.zeros((csv_file.size, word_limit, word_limit))
+    two_dimensional_similarity_matrix = np.zeros((num_rows, word_limit, word_limit))
 
     # 1D word vectors
-    one_dimensional_word_vectors = np.zeros((csv_file.size, word_limit * feature_size))
+    one_dimensional_word_vectors = np.zeros((num_rows, word_limit * feature_size))
 
     # 2D word vectors
-    two_dimensional_word_vectors = np.zeros((csv_file.size, word_limit, feature_size))
+    two_dimensional_word_vectors = np.zeros((num_rows, word_limit, feature_size))
 
     # label list
     label_list = []
@@ -83,7 +84,7 @@ def word_preprocessing (w2v_model_path, csv_file_path, word_limit, window_size, 
     return one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list
 
 # debug
-#one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list = word_preprocessing('D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/', 'D:/Workspaces/python/Sarcasm Detector Study/Feature-Extractor/ToadCSVFile_2018-05-23T20_33_112018-05-23 20-33-49.csv', 140, 5, 5, 1000)
+#one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list = WordPreprocessing('D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/', 'D:/Workspaces/python/Sarcasm Detector Study/Data/ToadCSVFile_2018-05-29T18_28_082018-05-29 18-28-45.csv', 140, 5, 5, 1000)
 
 
 # debug
