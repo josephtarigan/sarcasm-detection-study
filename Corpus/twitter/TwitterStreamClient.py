@@ -14,5 +14,5 @@ tweetStream = tweepy.Stream(auth=auth, listener=twitterStreamListener, tweet_mod
 
 #tweetStream.filter(track=['sarkasme'])
 #tweetStream.filter(track=['sarkastik'])
-tweetStream.filter(track=['#eh'])
-#tweetStream.filter(track=['#lah'])
+#tweetStream.filter(track=['#eh'])
+tweetStream.filter(track=['#lah'])
