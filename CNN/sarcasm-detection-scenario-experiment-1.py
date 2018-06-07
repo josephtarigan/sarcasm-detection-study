@@ -62,7 +62,7 @@ def cnn_model (word_count, vector_size):
 
     # Dense section
     model.add(Dense(265, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(2, activation='softmax'))
 
     return model
 
@@ -73,6 +73,6 @@ model.summary()
 sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 
 # compile
-model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
-history = model.fit(one_dimensional_word_vectors, label_list, epochs=50, batch_size=1, verbose=2)
+history = model.fit(one_dimensional_word_vectors, labels, epochs=50, batch_size=1, verbose=2)

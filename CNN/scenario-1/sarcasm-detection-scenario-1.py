@@ -3,12 +3,15 @@
 
 import sys
 sys.path.insert(0, 'D:/Workspaces/python/Sarcasm Detector Study')
-from keras.layers import Dense
+from keras.layers import Input, Dense
+from keras.models import Model
 from keras.layers import LeakyReLU
+from keras.layers import Concatenate
+from keras.utils import plot_model
+from keras.layers.merge import concatenate
+
 from keras.layers import Activation
 from keras.layers import Flatten
-from keras.optimizers import SGD
-from keras.models import Sequential
 from keras.layers import Dropout
 from keras.utils import np_utils
 from keras.layers.convolutional import Conv1D
@@ -22,6 +25,7 @@ word_limit = 100
 window_size = 5
 min_word = 5
 feature_size = 100
+dense_input_size = 256
 
 # load the data
 w2v_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/'
@@ -39,40 +43,66 @@ labels = np_utils.to_categorical(label_list)
 #print (two_dimensional_similarity_matrix.shape)
 #print (one_dimensional_word_vectors.shape)
 #print (two_dimensional_word_vectors.shape)
+#print (labels)
 #print (len(label_list))
 
-def cnn_model (word_count, vector_size):
-    # CNN section
-    model = Sequential()
-    model.add(Conv1D(filters=32, kernel_size=(500), input_shape=(word_count * vector_size, 1)))
-    #model.add(LeakyReLU(alpha=0.3))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.2))
-    model.add(MaxPooling1D(pool_size=2))
-    model.add(Conv1D(filters=50, kernel_size=(500)))
-    #model.add(LeakyReLU(alpha=0.3))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.2))
-    model.add(MaxPooling1D(pool_size=4))
-    model.add(Conv1D(filters=50, kernel_size=(500)))
-    #model.add(LeakyReLU(alpha=0.3))
-    model.add(Activation('relu'))
-    model.add(MaxPooling1D(pool_size=4))
-    model.add(Flatten())
+# similarity matrix
+# will produce N dimensional similarity vectors in 1 dimensional array
+def augmented_input (similarity_matrix) :
+    augmented_input = Input(shape=(similarity_matrix.shape[1],))
+    return augmented_input
 
-    # Dense section
-    model.add(Dense(265, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
+# the input layer
+def input_layer (word_limit, feature_size) :
+    input_layer = Input(shape=(word_limit*feature_size, 1))
+    
+    print (input_layer.shape)
+    return input_layer
 
-    return model
+# the cnn builder
+def conv_layer (input_layer, filter_count, kernel_size, pool_size, word_limit, feature_size) :
+    conv_layer = Conv1D(filters=filter_count, kernel_size=(kernel_size), input_shape=(word_limit * feature_size, 1), activation='relu') (input_layer)
+    act_layer = LeakyReLU(alpha=0.3) (conv_layer)
+    dropout_layer = Dropout(0.2) (act_layer)
+    pooling_layer = MaxPooling1D(pool_size=pool_size) (dropout_layer)
 
-model = cnn_model(word_limit, feature_size)
-model.summary()
+    return pooling_layer
 
-# optimiser
-sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
+# flatten util
+def flatten_layer (conv_layer) :
+    flatten_layer = conv_layer
+    flatten_layer = Flatten() (flatten_layer)
 
-# compile
-model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    return flatten_layer
 
-history = model.fit(one_dimensional_word_vectors, label_list, epochs=50, batch_size=1, verbose=2)
+# the dense builder
+def dense_layer (dense_input_size, flatten_input, label_size) :
+    dense_layer1 = Dense(dense_input_size, activation='relu') (flatten_input)
+    dense_layer2 = Dense(label_size, activation='softmax') (dense_layer1)
+
+    return dense_layer2
+
+# build the model
+input_layer = input_layer(word_limit, feature_size)
+conv_layer1 = conv_layer(input_layer, 32, 500, 2, word_limit, feature_size)
+conv_layer2 = conv_layer(conv_layer1, 50, 500, 4, word_limit, feature_size)
+conv_layer3 = conv_layer(conv_layer2, 50, 500, 4, word_limit, feature_size)
+flatten_layer = flatten_layer(conv_layer3)
+
+# augmented input
+augmented_input_layer = augmented_input(one_dimensional_similarity_matrix)
+
+# concatenate
+concat_layer = concatenate([flatten_layer, augmented_input_layer])
+
+# the dense layer
+dense_layer = dense_layer(dense_input_size, concat_layer, labels.shape[1])
+
+# the main model
+model = Model(inputs=[input_layer, augmented_input_layer], outputs=dense_layer)
+
+# summary
+print (model.summary())
+
+# plot graph
+plot_model(model, to_file='D:/Workspaces/python/Sarcasm Detector Study/multilayer_perceptron_graph.png')
