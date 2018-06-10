@@ -21,7 +21,7 @@ Sliding window size
 sg = 1
 window = 5
 min_count = 5
-size = 100
+size = 300
 corpus_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Corpus/wiki/text/AA/wiki_00'
 model_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/w2v-gensim-model' + '-' + str(sg) + '-' + str(window) + '-' + str(min_count) + '-' + str(size)
 
