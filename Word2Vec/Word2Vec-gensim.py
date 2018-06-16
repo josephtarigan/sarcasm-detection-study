@@ -1,5 +1,6 @@
 from gensim.models import Word2Vec
 from gensim.models.word2vec import LineSentence
+import os
 
 '''
 sentences
@@ -22,8 +23,13 @@ sg = 1
 window = 5
 min_count = 5
 size = 300
-corpus_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Corpus/wiki/text/AA/wiki_00'
-model_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/w2v-gensim-model' + '-' + str(sg) + '-' + str(window) + '-' + str(min_count) + '-' + str(size)
+
+# path
+root_path =  os.path.dirname(os.path.abspath(__file__)) + os.sep
+corpus_path = os.path.join(os.path.dirname(os.path.dirname(root_path)), 'Corpus' + os.sep + 'wiki' + os.sep + 'text' + os.sep + 'AA' + os.sep  + 'wiki_00')
+
+corpus_file_path = corpus_path
+model_file_path = root_path + os.sep + 'w2v-gensim-model' + '-' + str(sg) + '-' + str(window) + '-' + str(min_count) + '-' + str(size)
 
 #sentences = LineSentence(corpus_file_path)
 #w2vmodel = Word2Vec(sentences=sentences, size=size, window=window, min_count=min_count, workers=8, sg=sg)

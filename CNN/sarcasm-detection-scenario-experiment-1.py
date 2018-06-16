@@ -1,6 +1,7 @@
 # Scenario 1
 # Similarity vectors attached with the deep features
 
+import os
 import sys
 sys.path.insert(0, 'D:/Workspaces/python/Sarcasm Detector Study')
 from keras.layers import Dense
@@ -23,9 +24,14 @@ window_size = 5
 min_word = 5
 feature_size = 100
 
+# path
+root_path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+w2v_path = os.path.join(os.path.dirname(os.path.dirname(root_path)), 'Word2Vec') + os.sep
+data_path = os.path.join(os.path.dirname(os.path.dirname(root_path)), 'Data') + os.sep
+
 # load the data
-w2v_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/'
-csv_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Data/ToadCSVFile_2018-05-29T18_28_082018-05-29 18-28-45.csv'
+w2v_file_path = w2v_path
+csv_file_path = data_path + 'ToadCSVFile_2018-05-29T18_28_082018-05-29 18-28-45.csv'
 one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list = WordsVectorUtil.WordPreprocessing(w2v_file_path, csv_file_path, word_limit, window_size, min_word, feature_size)
 
 # reshape
