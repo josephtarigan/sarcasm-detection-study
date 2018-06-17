@@ -1,6 +1,20 @@
 import re
 import nltk
+import os
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+
+# paths
+root_path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+
+# Stopwords
+stopwords_file = open(root_path + 'id.stopwords.02.01.2016.txt', encoding='utf-8')
+stopwords_list = stopwords_file.readlines()
+stopwords = []
+
+for line in stopwords_list :
+    stopwords.append(line.rstrip('\n'))
+
+print (stopwords)
 
 # Abbreviation Expanding Dictionary
 abbreviationDictionary = {
@@ -50,6 +64,7 @@ reversedWordDictionary = {
 # 8. Reduplication word normalization
 # 9. Remove unused punctuation
 # 10. Stemming / Lemmatize
+# 11. Stopwords removal
 
 # to consider:
 # 1. Emoticons handling
@@ -171,6 +186,15 @@ def stemWords (words) :
     output = stemmer.stem(' '.join(words))
     return tokenizeTweet(output)
 
+# Stopword removal
+# Returns words that exist in the stopword list
+def stopwordRemoval (words, stopwords) :
+    filtered = []
+    for word in words :
+        if word not in stopwords :
+            filtered.append(word)
+    return filtered
+
 
 # dummy pipeline
 dummyTweet = '@Humanxsick: suka la cakaaap pasal [cinta] cintany ni. aku gk alergik {dsb}. bo la duk gewe nok-nok pese2 kuyyy. #eh http://www.fff.ccc/'
@@ -222,6 +246,59 @@ def preprocessPipeline1 (words) :
     # rule 9 stemming
     stemmedWords = stemWords(unusedPunctuationRemovedWords)
 
+    # rule 11 Stopword removal
+    stopwordRemoved = stopwordRemoval(stemmedWords, stopwords)
+
+    return stopwordRemoved
+
+# non stopwords
+def preprocessPipeline2 (words) :
+    # rule 1
+    if (scanRtTag(words)) :
+        return ''
+
+    # rule 2 Remove twitter special tags
+    processedWords = removeSpecialTags(words)
+
+    # rule 3 Remove URL
+    processedWords = removeUrl(processedWords)
+
+    # rule 4 Tokenize
+    processedWords = tokenizeTweet(processedWords)
+
+    # rule 5 Abbreviation expanding
+    expandedWord = []
+    for word in processedWords :
+        expandedTrial = abbreviationExpander(word, abbreviationDictionary)
+        if type(expandedTrial) == list:
+            for token in expandedTrial:
+                expandedWord.append(token)
+        else:
+            expandedWord.append(expandedTrial)
+
+    # rule 6 Duplicated letter removal
+    duplicateLetterRemovedWords = []
+    for word in expandedWord :
+        duplicateLetterRemovedWords.append(duplicateLetterRemoval(word))
+
+    # rule 7 reversed word
+    reversedExpandedWords = []
+    for word in duplicateLetterRemovedWords :
+        reversedExpandedWords.append(reversedWordNormalisation(word, reversedWordDictionary))
+    #print (reversedExpandedWords)
+
+    # rule 8 Reduplication normalization
+    reduplicationNormalizedWords = []
+    for word in reversedExpandedWords :
+        reduplicationNormalizedWords.append(reduplicationNormalization(word))
+
+    # rule 8 remove unused punctuation
+    unusedPunctuationRemovedWords = removeUnusedPunctuation (reduplicationNormalizedWords)
+    #print (unusedPunctuationRemovedWords)
+
+    # rule 9 stemming
+    stemmedWords = stemWords(unusedPunctuationRemovedWords)
+
     return stemmedWords
 
-#print (preprocessPipeline1(dummyTweet))
+print (preprocessPipeline1(dummyTweet))
