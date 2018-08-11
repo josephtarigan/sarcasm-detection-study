@@ -84,7 +84,7 @@ def WordPreprocessing (w2v_model_path, csv_file_path, word_limit, window_size, w
     return one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list
 
 # debug
-#one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list = WordPreprocessing('D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/', 'D:/Workspaces/python/Sarcasm Detector Study/Data/ToadCSVFile_2018-05-29T18_28_082018-05-29 18-28-45.csv', 140, 5, 5, 1000)
+#one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list = WordPreprocessing('D:/Workspace/python/Sarcasm Detector Study/Word2Vec/', 'D:/Workspace/python/Sarcasm Detector Study/Data/ToadCSVFile_2018-05-29T18_28_082018-05-29 18-28-45.csv', 50, 5, 5, 300)
 
 
 # debug

@@ -2,7 +2,7 @@
 # Similarity vectors attached with the deep features
 
 import sys
-sys.path.insert(0, 'D:/Workspaces/python/Sarcasm Detector Study')
+sys.path.insert(0, 'D:/Workspace/python/Sarcasm Detector Study')
 from keras.layers import Input, Dense
 from keras.models import Model
 from keras.layers import LeakyReLU
@@ -22,15 +22,15 @@ from keras import backend as K
 K.set_image_dim_ordering('th')
 
 # init
-word_limit = 100
+word_limit = 50
 window_size = 5
 min_word = 5
-feature_size = 100
+feature_size = 300
 dense_input_size = 256
 
 # load the data
-w2v_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Word2Vec/'
-csv_file_path = 'D:/Workspaces/python/Sarcasm Detector Study/Data/ToadCSVFile_2018-05-29T18_28_082018-05-29 18-28-45.csv'
+w2v_file_path = 'D:/Workspace/python/Sarcasm Detector Study/Word2Vec/'
+csv_file_path = 'D:/Workspace/python/Sarcasm Detector Study/Data/ToadCSVFile_2018-05-29T18_28_082018-05-29 18-28-45.csv'
 one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimensional_word_vectors, two_dimensional_word_vectors, label_list = WordsVectorUtil.WordPreprocessing(w2v_file_path, csv_file_path, word_limit, window_size, min_word, feature_size)
 
 # reshape
@@ -108,7 +108,7 @@ model = Model(inputs=[input_layer, augmented_input_layer], outputs=dense_layer)
 #print (model.summary())
 
 # plot graph
-#plot_model(model, to_file='D:/Workspaces/python/Sarcasm Detector Study/multilayer_perceptron_graph.png')
+#plot_model(model, to_file='D:/Workspace/python/Sarcasm Detector Study/scenario_1_model.png')
 
 # SGD model
 sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)

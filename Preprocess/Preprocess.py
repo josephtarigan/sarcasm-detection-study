@@ -14,7 +14,7 @@ stopwords = []
 for line in stopwords_list :
     stopwords.append(line.rstrip('\n'))
 
-print (stopwords)
+#print (stopwords)
 
 # Abbreviation Expanding Dictionary
 abbreviationDictionary = {
@@ -301,4 +301,4 @@ def preprocessPipeline2 (words) :
 
     return stemmedWords
 
-print (preprocessPipeline1(dummyTweet))
+#print (preprocessPipeline1(dummyTweet))

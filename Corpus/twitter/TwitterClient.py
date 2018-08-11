@@ -16,7 +16,7 @@ auth.set_access_token(access_token, access_token_secret)
 
 api = tweepy.API(auth)
 
-result = api.search(lang='id', q='#eh', tweet_mode='extended')
+result = api.search(lang='id', q='#bego', tweet_mode='extended')
 print (str(len(result)) + ' tweet(s) are returned\n\n')
 
 #pprint(getmembers(result[0]))
