@@ -46,7 +46,11 @@ abbreviationDictionary = {
     '&'         : 'dan',
     '%'         : 'persen',
     '$'         : 'dolar',
-    'rp'        : 'rupiah'
+    'rp'        : 'rupiah',
+    'malem'     : 'malam',
+    'pengen'    : 'ingin',
+    'sampe'     : 'sampai',
+    'tmn'       : 'teman'
 }
 
 reversedWordDictionary = {
