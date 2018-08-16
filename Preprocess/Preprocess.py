@@ -5,6 +5,7 @@ from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 
 # paths
 root_path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+affix_file_path = 'D:/Workspace/python/Sarcasm Detector Study/Corpus/affix-list.txt'
 
 # Stopwords
 stopwords_file = open(root_path + 'id.stopwords.02.01.2016.txt', encoding='utf-8')
@@ -20,6 +21,7 @@ for line in stopwords_list :
 abbreviationDictionary = {
     'gk'        : 'tidak',
     'gak'       : 'tidak',
+    'ga'        : 'tidak',
     'tdk'       : 'tidak',
     'nggak'     : 'tidak',
     'iy'        : 'iya',
@@ -50,7 +52,31 @@ abbreviationDictionary = {
     'malem'     : 'malam',
     'pengen'    : 'ingin',
     'sampe'     : 'sampai',
-    'tmn'       : 'teman'
+    'tmn'       : 'teman',
+    'kl'        : 'kalau',
+    'inget'     : 'ingat',
+    'nubruk'    : 'tabrak',
+    'ttg'       : 'tentang',
+    'ampe'      : 'sampai',
+    'gw'        : 'saya',
+    'gua'       : 'saya',
+    'elu'       : 'anda',
+    'lu'        : 'anda',
+    'prnh'      : 'pernah',
+    'krna'      : 'karena',
+    'krn'       : 'karena',
+    'krng'      : 'kurang',
+    'bru'       : 'baru',
+    'br'        : 'baru',
+    'nyampe'    : 'sampai',
+    'tau'       : 'tahu',
+    'trus'      : 'terus',
+    'aja'       : 'saja',
+    'ilang'     : 'hilang',
+    'oon'       : 'bodoh',
+    'bgt'       : 'sekali',
+    'pengin'    : 'ingin',
+    'karna'     : 'karena'
 }
 
 reversedWordDictionary = {
@@ -199,9 +225,28 @@ def stopwordRemoval (words, stopwords) :
             filtered.append(word)
     return filtered
 
+def affixConcatenator (words, dictionary) :
+    word_count = len(words)
+    i = 0
+    returned_words = []
+    
+    while i < word_count :
+        if i+1 < word_count :
+            if words[i] in dictionary :
+                returned_words.append(words[i] + '_' + words[i+1])
+                i = i+2
+            else :
+                returned_words.append(words[i])
+                i = i+1
+        else :
+            returned_words.append(words[i])
+            i = i+1
+
+    return returned_words
 
 # dummy pipeline
-dummyTweet = '@Humanxsick: suka la cakaaap pasal [cinta] cintany ni. aku gk alergik {dsb}. bo la duk gewe nok-nok pese2 kuyyy. #eh http://www.fff.ccc/'
+#dummyTweet = '@Humanxsick: suka la cakaaap pasal [cinta] cintany ni. aku gk alergik {dsb}. bo la duk gewe nok-nok pese2 kuyyy. #eh http://www.fff.ccc/'
+dummyTweet = 'lo pernah ga sih nemu manusia saking pintarnya mereka jadi tidak bodoh. aka amuro + conan combo'
 
 def preprocessPipeline1 (words) :
     # rule 1
@@ -211,11 +256,17 @@ def preprocessPipeline1 (words) :
     # rule 2 Remove twitter special tags
     processedWords = removeSpecialTags(words)
 
+    print (processedWords)
+
     # rule 3 Remove URL
     processedWords = removeUrl(processedWords)
 
+    print (processedWords)
+
     # rule 4 Tokenize
     processedWords = tokenizeTweet(processedWords)
+
+    print (processedWords)
 
     # rule 5 Abbreviation expanding
     expandedWord = []
@@ -227,32 +278,50 @@ def preprocessPipeline1 (words) :
         else:
             expandedWord.append(expandedTrial)
 
+    print (expandedWord)
+
     # rule 6 Duplicated letter removal
     duplicateLetterRemovedWords = []
     for word in expandedWord :
         duplicateLetterRemovedWords.append(duplicateLetterRemoval(word))
 
+    print (duplicateLetterRemovedWords)
+
     # rule 7 reversed word
     reversedExpandedWords = []
     for word in duplicateLetterRemovedWords :
         reversedExpandedWords.append(reversedWordNormalisation(word, reversedWordDictionary))
-    #print (reversedExpandedWords)
+    
+    print (reversedExpandedWords)
 
     # rule 8 Reduplication normalization
     reduplicationNormalizedWords = []
     for word in reversedExpandedWords :
         reduplicationNormalizedWords.append(reduplicationNormalization(word))
 
+    print (reduplicationNormalizedWords)
+
     # rule 8 remove unused punctuation
     unusedPunctuationRemovedWords = removeUnusedPunctuation (reduplicationNormalizedWords)
-    #print (unusedPunctuationRemovedWords)
+
+    print (unusedPunctuationRemovedWords)
 
     # rule 9 stemming
     stemmedWords = stemWords(unusedPunctuationRemovedWords)
 
-    # rule 11 Stopword removal
-    stopwordRemoved = stopwordRemoval(stemmedWords, stopwords)
+    print (stemmedWords)
 
+    # rule 10 affix concatenator
+    affixDictionary = [line.rstrip('\n') for line in open(affix_file_path, mode='r', encoding='utf-8')]
+    afficConcatenated = affixConcatenator(stemmedWords, affixDictionary)
+
+    print (afficConcatenated)
+
+    # rule 11 Stopword removal
+    stopwordRemoved = stopwordRemoval(afficConcatenated, stopwords)
+
+    print (stopwordRemoved)
+    
     return stopwordRemoved
 
 # non stopwords
@@ -305,4 +374,4 @@ def preprocessPipeline2 (words) :
 
     return stemmedWords
 
-#print (preprocessPipeline1(dummyTweet))
+print (preprocessPipeline1('Pernah ga sih, pengin bgt beli sesuatu barang, karna mahal ngumpulin duit, saking lamaaaanya belum cukup cukup juga… https://t.co/Z4kUJyoxKz'))

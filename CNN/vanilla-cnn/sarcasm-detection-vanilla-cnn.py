@@ -1,5 +1,4 @@
-# Scenario 1
-# Similarity vectors attached with the deep features
+# Vanila CNN
 
 import sys
 import time
@@ -35,8 +34,8 @@ tdsm = None
 odwv = None
 tdwv = None
 data_labels = None
-log_file = 'D:/Workspace/python/Sarcasm Detector Study/CNN/Log/scenario1_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
-model_path = 'D:/Workspace/python/Sarcasm Detector Study/CNN/Model/scenario1_' + time.strftime("%Y%m%d-%H%M%S") + '.mdl'
+log_file = 'D:/Workspace/python/Sarcasm Detector Study/CNN/Log/vanilla_cnn_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
+model_path = 'D:/Workspace/python/Sarcasm Detector Study/CNN/Model/vanilla_cnn_' + time.strftime("%Y%m%d-%H%M%S") + '.mdl'
 
 # load the data
 w2v_file_path = 'D:/Workspace/python/Sarcasm Detector Study/Word2Vec/'
@@ -49,41 +48,36 @@ one_dimensional_similarity_matrix, two_dimensional_similarity_matrix, one_dimens
 # first, generate random non-repetitive index
 odsm = np.empty_like(one_dimensional_similarity_matrix)
 tdsm = np.empty_like(two_dimensional_similarity_matrix)
-odwv = np.empty_like(one_dimensional_word_vectors)
+odwv = np.empty((one_dimensional_similarity_matrix.shape[0], one_dimensional_word_vectors.shape[1]))
 tdwv = np.empty_like(two_dimensional_word_vectors)
 data_labels = []
 random_index = np.random.choice(one_dimensional_word_vectors.shape[0], one_dimensional_word_vectors.shape[0], replace=False)
 
 # then build the new array for each input
+# concat similarity vector with input
 for i, j in enumerate(random_index):
     odsm[i] = one_dimensional_similarity_matrix[j]
     tdsm[i] = two_dimensional_similarity_matrix[j]
     odwv[i] = one_dimensional_word_vectors[j]
     tdwv[i] = two_dimensional_word_vectors[j]
-    data_labels.insert(i, label_list[j])
-
-# reshape
-odwv = odwv.reshape(odwv.shape[0], len(odwv[0]), 1)
+    data_labels.append(label_list[j])
 
 # convert to one-hot vectors
 labels = np_utils.to_categorical(data_labels)
 
-# similarity matrix
-# will produce N dimensional similarity vectors in 1 dimensional array
-def augmented_input (similarity_matrix) :
-    augmented_input = Input(shape=(similarity_matrix.shape[1],), name='augmented_input')
-    return augmented_input
+# reshape
+odwv = odwv.reshape(odwv.shape[0], len(odwv[0]), 1)
 
 # the input layer
 def input_layer (word_limit, feature_size) :
-    input_layer = Input(shape=(word_limit*feature_size, 1), name='main_input')
+    input_layer = Input(shape=((word_limit*feature_size), 1), name='main_input')
 
     return input_layer
 
 # the cnn builder
 def conv_layer (input_layer, filter_count, kernel_size, pool_size, word_limit, feature_size, i) :
     if i == 1 :
-        conv_layer = Conv1D(filters=filter_count, kernel_size=(kernel_size), input_shape=(word_limit * feature_size, 1), activation='relu', name='conv_' + str(i)) (input_layer)
+        conv_layer = Conv1D(filters=filter_count, kernel_size=(kernel_size), input_shape=((word_limit*feature_size) + (word_limit*word_limit), 1), activation='relu', name='conv_' + str(i)) (input_layer)
     else :
         conv_layer = Conv1D(filters=filter_count, kernel_size=(kernel_size), activation='relu', name='conv_' + str(i)) (input_layer)
     act_layer = LeakyReLU(alpha=0.3) (conv_layer)
@@ -106,6 +100,11 @@ def dense_layer (dense_input_size, flatten_input, label_size) :
 
     return dense_layer2
 
+# concat input vector with similarity vector
+def concat_input_similarity_vector (input_vectors, similarity_vectors) :
+    for index, _ in enumerate(input_vectors) :
+        input_vectors[index].concatenate(similarity_vectors[index])
+
 # build the model
 input_layer = input_layer(word_limit, feature_size)
 conv_layer1 = conv_layer(input_layer, 300, 11, 2, word_limit, feature_size, 1)
@@ -113,36 +112,28 @@ conv_layer2 = conv_layer(conv_layer1, 200, 11, 2, word_limit, feature_size, 2)
 conv_layer3 = conv_layer(conv_layer2, 100, 10, 2, word_limit, feature_size, 3)
 conv_layer4 = conv_layer(conv_layer3, 100, 10, 2, word_limit, feature_size, 4)
 flatten_layer = flatten_layer(conv_layer4)
-
-# augmented input
-augmented_input_layer = augmented_input(odsm)
-
-# concatenate
-concat_layer = concatenate([flatten_layer, augmented_input_layer])
-
-# the dense layer
-dense_layer = dense_layer(dense_input_size, concat_layer, len(labels[1]))
+dense_layer = dense_layer(dense_input_size, flatten_layer, len(labels[1]))
 
 # the main model
-model = Model(inputs=[input_layer, augmented_input_layer], outputs=dense_layer)
+model = Model(inputs=[input_layer], outputs=dense_layer)
 
 # summary
 print (model.summary())
 
 # plot graph
-plot_model(model, to_file='D:/Workspace/python/Sarcasm Detector Study/scenario_1_model.png')
+plot_model(model, to_file='D:/Workspace/python/Sarcasm Detector Study/vanilla_cnn_model.png')
 
 # SGD model
 sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-
-# train the model
-model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
 # set log file
 csv_logger = CSVLogger(log_file, append=False, separator=';')
 
 # train the model
-history = model.fit({'main_input' : odwv, 'augmented_input' : odsm}, {'output_layer' : labels}, epochs=50, batch_size=1, verbose=2, callbacks=[csv_logger])
+model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+
+# train the model
+history = model.fit({'main_input' : odwv}, {'output_layer' : labels}, epochs=50, batch_size=1, verbose=2, callbacks=[csv_logger])
 
 # save model
 model.save(model_path)
